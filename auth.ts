@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { ZodError } from "zod";
 import Credentials from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
 import { signInSchema } from "@/app/lib/zod";
 import { verifyPassword } from "@/app/utils/password";
 import { db } from '@/app/db';
@@ -11,108 +12,75 @@ import Dingding from "@/app/auth/providers/dingding";
 import { loadDynamicOAuthProviders } from "@/app/auth/providers/dynamic-oauth";
 import { eq } from 'drizzle-orm';
 
-// 全局providers缓存
-let providersCache: any[] | null = null;
-let cacheTime = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
+// 静态providers - 立即可用
+const staticProviders = [];
 
-async function getOAuthProviders() {
-  const now = Date.now();
-  
-  // 检查缓存是否有效
-  if (providersCache && (now - cacheTime) < CACHE_DURATION) {
-    return providersCache;
-  }
-  
-  let providers: any[] = [];
-  
-  // 传统企业OAuth提供商 (向后兼容)
-  if (process.env.FEISHU_AUTH_STATUS === 'ON') {
-    providers.push(Feishu({
-      clientId: process.env.FEISHU_CLIENT_ID!,
-      clientSecret: process.env.FEISHU_CLIENT_SECRET!,
-    }));
-  }
-  if (process.env.WECOM_AUTH_STATUS === 'ON') {
-    providers.push(Wecom({
-      clientId: process.env.WECOM_CLIENT_ID!,
-      clientSecret: process.env.WECOM_CLIENT_SECRET!,
-    }));
-  }
-  if (process.env.DINGDING_AUTH_STATUS === 'ON') {
-    providers.push(Dingding({
-      clientId: process.env.DINGDING_CLIENT_ID!,
-      clientSecret: process.env.DINGDING_CLIENT_SECRET!,
-    }));
-  }
-
-  // 动态OAuth提供商 - 从数据库加载
-  try {
-    const dynamicProviders = await loadDynamicOAuthProviders();
-    providers.push(...dynamicProviders);
-    console.log(`Loaded ${dynamicProviders.length} dynamic OAuth providers`);
-  } catch (error) {
-    console.error('Failed to load dynamic OAuth providers:', error);
-  }
-
-  // 更新缓存
-  providersCache = providers;
-  cacheTime = now;
-  
-  return providers;
+// 添加传统OAuth提供商
+if (process.env.FEISHU_AUTH_STATUS === 'ON') {
+  staticProviders.push(Feishu({
+    clientId: process.env.FEISHU_CLIENT_ID!,
+    clientSecret: process.env.FEISHU_CLIENT_SECRET!,
+  }));
+}
+if (process.env.WECOM_AUTH_STATUS === 'ON') {
+  staticProviders.push(Wecom({
+    clientId: process.env.WECOM_CLIENT_ID!,
+    clientSecret: process.env.WECOM_CLIENT_SECRET!,
+  }));
+}
+if (process.env.DINGDING_AUTH_STATUS === 'ON') {
+  staticProviders.push(Dingding({
+    clientId: process.env.DINGDING_CLIENT_ID!,
+    clientSecret: process.env.DINGDING_CLIENT_SECRET!,
+  }));
 }
 
-// 预加载providers
-let providersPromise: Promise<any[]> | null = null;
-
-function getProvidersSync() {
-  if (!providersPromise) {
-    providersPromise = getOAuthProviders();
-  }
-  return providersPromise;
+// 添加GitHub OAuth - 使用NextAuth自带的
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  staticProviders.push(GitHub({
+    clientId: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  }));
 }
 
-// 立即开始异步加载
-getProvidersSync();
+// 添加凭据提供商
+staticProviders.push(Credentials({
+  credentials: {
+    email: {},
+    password: {},
+  },
+  authorize: async (credentials) => {
+    try {
+      const { email, password } = await signInSchema.parseAsync(credentials);
+      const user = await db.query.users
+        .findFirst({
+          where: eq(users.email, email)
+        })
+      if (!user || !user.password) {
+        return null;
+      }
+      const passwordMatch = await verifyPassword(password, user.password);
+      if (passwordMatch) {
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          isAdmin: user.isAdmin || false,
+        };
+      } else {
+        return null;
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return null;
+      }
+      throw error;
+    }
+  },
+}));
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    // 先提供基础的凭据提供商
-    Credentials({
-      credentials: {
-        email: {},
-        password: {},
-      },
-      authorize: async (credentials) => {
-        try {
-          const { email, password } = await signInSchema.parseAsync(credentials);
-          const user = await db.query.users
-            .findFirst({
-              where: eq(users.email, email)
-            })
-          if (!user || !user.password) {
-            return null;
-          }
-          const passwordMatch = await verifyPassword(password, user.password);
-          if (passwordMatch) {
-            return {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              isAdmin: user.isAdmin || false,
-            };
-          } else {
-            return null;
-          }
-        } catch (error) {
-          if (error instanceof ZodError) {
-            return null;
-          }
-          throw error;
-        }
-      },
-    }),
-  ],
+  providers: staticProviders,
   pages: {
     error: '/auth/error',
   },
@@ -124,6 +92,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       if (account?.provider === "credentials" && token.sub) {
         token.provider = 'credentials';
+      }
+      
+      // 处理GitHub OAuth
+      if (account?.provider === "github" && token.sub) {
+        const dbUser = await db.query.users.findFirst({
+          where: (users, { sql }) => sql`${users.oauthAccounts}->>'github' = ${account.providerAccountId}`
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.isAdmin = dbUser.isAdmin || false;
+        } else {
+          // 创建新用户
+          const defaultGroup = await db.query.groups?.findFirst?.({
+            where: (groups, { eq }) => eq(groups.isDefault, true)
+          }) || null;
+          
+          const newUser = await db.insert(users).values({
+            name: user.name || 'GitHub User',
+            email: user.email || `${account.providerAccountId}@github.com`,
+            image: user.image,
+            oauthAccounts: {
+              github: account.providerAccountId
+            },
+            groupId: defaultGroup?.id || null,
+          }).returning();
+          
+          if (newUser[0]) {
+            token.id = newUser[0].id;
+            token.isAdmin = newUser[0].isAdmin || false;
+          }
+        }
+        token.provider = 'github';
       }
       
       // 处理传统OAuth提供商
@@ -160,7 +160,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       
       // 处理动态OAuth提供商
       if (account && account.provider !== 'credentials' && 
-          !['feishu', 'wecom', 'dingding'].includes(account.provider)) {
+          !['feishu', 'wecom', 'dingding', 'github'].includes(account.provider)) {
         const dbUser = await db.query.users.findFirst({
           where: (users, { sql }) => sql`${users.oauthAccounts}->>${account.provider} = ${account.providerAccountId}`
         });
@@ -189,8 +189,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 // 清除OAuth providers缓存的函数，供管理API调用
 export function clearOAuthProvidersCache() {
-  providersCache = null;
-  cacheTime = 0;
-  providersPromise = null;
   console.log('OAuth providers cache cleared');
 }
