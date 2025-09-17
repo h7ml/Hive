@@ -157,6 +157,9 @@ export async function getActiveAuthProvides() {
   if (process.env.DINGDING_AUTH_STATUS && process.env.DINGDING_AUTH_STATUS.toLowerCase() === 'on') {
     activeAuthProvides.push('dingding')
   }
+  if (process.env.GITHUB_AUTH_STATUS && process.env.GITHUB_AUTH_STATUS.toLowerCase() === 'on') {
+    activeAuthProvides.push('github')
+  }
   return activeAuthProvides;
 }
 
@@ -246,5 +249,21 @@ export async function getDingdingAuthInfo() {
     isActive: process.env.DINGDING_AUTH_STATUS?.toLowerCase() === 'on',
     appId: process.env.DINGDING_CLIENT_ID || '',
     appSecret: process.env.DINGDING_CLIENT_SECRET || '',
+  }
+}
+
+export async function getGitHubAuthInfo() {
+  const session = await auth();
+  if (!session?.user.isAdmin) {
+    return {
+      isActive: false,
+      clientId: '',
+      clientSecret: '',
+    }
+  }
+  return {
+    isActive: process.env.GITHUB_AUTH_STATUS?.toLowerCase() === 'on',
+    clientId: process.env.GITHUB_CLIENT_ID || '',
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
   }
 }

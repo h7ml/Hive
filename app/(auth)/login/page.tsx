@@ -10,6 +10,7 @@ import Hivechat from "@/app/images/hivechat.svg";
 import FeishuLogin from "@/app/components/FeishuLoginButton"
 import WecomLogin from "@/app/components/WecomLoginButton"
 import DingdingLogin from "@/app/components/DingdingLoginButton"
+import GitHubLogin from "@/app/components/GitHubLoginButton"
 import { fetchAppSettings } from '@/app/admin/system/actions';
 import { getActiveAuthProvides, getEnabledOAuthProviders } from '@/app/(auth)/actions';
 import SpinLoading from '@/app/components/loading/SpinLoading';
