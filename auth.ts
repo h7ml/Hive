@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { ZodError } from "zod";
 import Credentials from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
 import { signInSchema } from "@/app/lib/zod";
 import { verifyPassword } from "@/app/utils/password";
 import { db } from '@/app/db';
@@ -8,7 +9,6 @@ import { users } from '@/app/db/schema';
 import Feishu from "@/app/auth/providers/feishu";
 import Wecom from "@/app/auth/providers/wecom";
 import Dingding from "@/app/auth/providers/dingding";
-import GitHub from "@/app/auth/providers/github";
 import { eq } from 'drizzle-orm';
 
 let authProviders: any[] = [];

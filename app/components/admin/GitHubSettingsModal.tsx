@@ -18,7 +18,8 @@ const GitHubSettingsModal: React.FC<settingsModalProps> = ({
   isModalOpen,
   setIsModalOpen,
 }) => {
-  const t = useTranslations('Admin.Models');
+  const t = useTranslations('Admin.System');
+  const tCommon = useTranslations('Admin.Models');
   const [isActive, setIsActive] = useState(false);
   const [settingForm] = Form.useForm<FormValues>();
 
@@ -38,15 +39,15 @@ const GitHubSettingsModal: React.FC<settingsModalProps> = ({
 
   return (
     <Modal
-      title='设置 GitHub 登录'
+      title={t('setupGitHubLogin')}
       maskClosable={false}
       keyboard={false}
       centered={true}
-      okText={t('okText')}
-      cancelText={t('cancelText')}
+      okText={tCommon('okText')}
+      cancelText={tCommon('cancelText')}
       open={isModalOpen}
       onCancel={() => setIsModalOpen(false)}
-      footer={<Button onClick={() => setIsModalOpen(false)}>关闭</Button>}
+      footer={<Button onClick={() => setIsModalOpen(false)}>{t('close')}</Button>}
     >
       <div className='mt-4'>
         <Form
@@ -54,40 +55,40 @@ const GitHubSettingsModal: React.FC<settingsModalProps> = ({
           form={settingForm}
         >
           <div className='mt-2 mb-6 bg-slate-100 p-4 rounded-md'>
-            <span className='font-medium text-base'>当前状态</span>
+            <span className='font-medium text-base'>{t('authStatus')}</span>
             {isActive ?
               <div className='flex flex-row items-center my-4'>
                 <div className='w-3 h-3 bg-green-500 rounded-full'></div>
-                <span className='ml-2 text-sm'>已启用</span>
+                <span className='ml-2 text-sm'>{t('enabled')}</span>
               </div> :
               <div className='flex flex-row items-center my-4'>
                 <div className='w-3 h-3 bg-gray-400 rounded-full'></div>
-                <span className='ml-2 text-sm'>未启用</span>
+                <span className='ml-2 text-sm'>{t('disabled')}</span>
               </div>
             }
             <div className='text-gray-500'>
-              如需启用或禁用 GitHub 登录，请修改根目录 .env 文件，并重新编译并启动程序。
+              {t('githubConfigGuide')}
               <br />
-              配置步骤：
+              {t('githubConfigSteps')}
               <ol className='list-decimal list-inside mt-2 text-sm'>
-                <li>前往 GitHub Settings → Developer settings → OAuth Apps</li>
-                <li>创建新的 OAuth App，设置回调 URL 为：<code className='bg-gray-200 px-1 rounded'>{`{域名}/api/auth/callback/github`}</code></li>
-                <li>获取 Client ID 和 Client Secret 配置到环境变量</li>
-                <li>重启应用生效</li>
+                <li>{t('githubStep1')}</li>
+                <li>{t('githubStep2')}<code className='bg-gray-200 px-1 rounded'>{`{域名}/api/auth/callback/github`}</code></li>
+                <li>{t('githubStep3')}</li>
+                <li>{t('githubStep4')}</li>
               </ol>
             </div>
           </div>
           <Form.Item
             name='clientId'
-            label={<span className='font-medium'>Client ID</span>}
-            rules={[{ required: true, message: '当前项为必填' }]}
+            label={<span className='font-medium'>{t('clientId')}</span>}
+            rules={[{ required: true, message: tCommon('fieldRequired') }]}
           >
             <Input disabled />
           </Form.Item>
           <Form.Item
             name='clientSecret'
-            label={<span className='font-medium'>Client Secret</span>}
-            rules={[{ required: true, message: '当前项为必填' }]}
+            label={<span className='font-medium'>{t('clientSecret')}</span>}
+            rules={[{ required: true, message: tCommon('fieldRequired') }]}
           >
             <Input type='password' disabled />
           </Form.Item>

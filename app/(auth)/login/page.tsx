@@ -140,7 +140,7 @@ export default function LoginPage() {
         }
         {
           authProviders.includes('github') &&
-          <div className='my-2'><GitHubLogin /></div>
+          <div className='my-2'><GitHubLogin callbackUrl="/chat" /></div>
         }
       </div>
     </div>
