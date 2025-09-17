@@ -160,6 +160,45 @@ export async function getActiveAuthProvides() {
   return activeAuthProvides;
 }
 
+// 获取启用的动态OAuth提供商
+export async function getEnabledOAuthProviders() {
+  try {
+    const { db } = await import('@/app/db');
+    const { oauthProviders } = await import('@/app/db/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const providers = await db.query.oauthProviders.findMany({
+      where: eq(oauthProviders.enabled, true),
+      columns: {
+        id: true,
+        name: true,
+        iconUrl: true,
+        buttonText: true,
+        buttonColor: true,
+        orderIndex: true,
+        // 不返回敏感信息
+        clientId: false,
+        clientSecret: false,
+        authorizationUrl: false,
+        tokenUrl: false,
+        userinfoUrl: false,
+        profileMapping: false,
+        scopes: false,
+        config: false,
+        enabled: false,
+        createdAt: false,
+        updatedAt: false,
+      },
+      orderBy: (providers, { asc }) => [asc(providers.orderIndex), asc(providers.name)]
+    });
+
+    return providers;
+  } catch (error) {
+    console.error('Error fetching OAuth providers:', error);
+    return [];
+  }
+}
+
 export async function getFeishuAuthInfo() {
   const session = await auth();
   if (!session?.user.isAdmin) {

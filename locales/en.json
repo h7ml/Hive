@@ -34,7 +34,8 @@
     "adminCodeRequired": "Enter the Admin Code",
     "setupAdminAccount": "Set up an admin account.",
     "adminCodeNotice": "The value of the root directory .env file or environment variable ADMIN_CODE is used to set up the administrator account during the initial installation.",
-    "setupNotice": "Please set up the administrator account and password. Once the administrator account is set up, this page will no longer be accessible."
+    "setupNotice": "Please set up the administrator account and password. Once the administrator account is set up, this page will no longer be accessible.",
+    "or": "or"
   },
   "Chat": {
     "avatarType": "Avatar Type",
