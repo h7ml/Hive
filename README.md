@@ -10,7 +10,7 @@
 
 管理员一人配置，全团队轻松使用各种 AI 模型。
 
-* 支持配置邮箱登录或企业微信、钉钉、飞书登录
+* 支持配置邮箱登录或企业微信、钉钉、飞书、GitHub 登录
 * 支持分组管理用户
     * 针对分组用户设置不同可使用的模型
     * 针对分组用户可分别设置每月 Token 限额
@@ -150,6 +150,11 @@ WECOM_CLIENT_SECRET="H-7J4jzG0m1axpXLGshaCDlMOZxdjvkX6bIVLuXXXXXX"
 DINGDING_AUTH_STATUS=OFF
 DINGDING_CLIENT_ID="dingpcfi2kpuplXXXXXX"
 DINGDING_CLIENT_SECRET="3vk9-VFCExNckqNUk_CL2F-HEgz7qGN-BimH0lZ1gUx6hWO7g_an2lnkk6XXXXXX"
+
+# 是否开启 GitHub 登录，开启值设为 ON，关闭时修改为 OFF
+GITHUB_AUTH_STATUS=OFF
+GITHUB_CLIENT_ID="Ov23li5xxxxxxxx"
+GITHUB_CLIENT_SECRET="4a7c2b5d8f1e6a9c3b2d5e8f1a4c7b0dxxxxxxxx"
 ```
 
 4. 初始化数据库
@@ -219,6 +224,11 @@ WECOM_CLIENT_SECRET="H-7J4jzG0m1axpXLGshaCDlMOZxdjvkX6bIVLuXXXXXX"
 DINGDING_AUTH_STATUS=OFF
 DINGDING_CLIENT_ID="dingpcfi2kpuplXXXXXX"
 DINGDING_CLIENT_SECRET="3vk9-VFCExNckqNUk_CL2F-HEgz7qGN-BimH0lZ1gUx6hWO7g_an2lnkk6XXXXXX"
+
+# 是否开启 GitHub 登录，开启值设为 ON，关闭时修改为 OFF
+GITHUB_AUTH_STATUS=OFF
+GITHUB_CLIENT_ID="Ov23li5xxxxxxxx"
+GITHUB_CLIENT_SECRET="4a7c2b5d8f1e6a9c3b2d5e8f1a4c7b0dxxxxxxxx"
 ```
 
 3. 启动容器
@@ -277,6 +287,11 @@ WECOM_CLIENT_SECRET="H-7J4jzG0m1axpXLGshaCDlMOZxdjvkX6bIVLuXXXXXX"
 DINGDING_AUTH_STATUS=OFF
 DINGDING_CLIENT_ID="dingpcfi2kpuplXXXXXX"
 DINGDING_CLIENT_SECRET="3vk9-VFCExNckqNUk_CL2F-HEgz7qGN-BimH0lZ1gUx6hWO7g_an2lnkk6XXXXXX"
+
+# 是否开启 GitHub 登录，开启值设为 ON，关闭时修改为 OFF
+GITHUB_AUTH_STATUS=OFF
+GITHUB_CLIENT_ID="Ov23li5xxxxxxxx"
+GITHUB_CLIENT_SECRET="4a7c2b5d8f1e6a9c3b2d5e8f1a4c7b0dxxxxxxxx"
 ```
 
 ## 版本升级
@@ -321,6 +336,7 @@ ADD COLUMN message_send_shortcut message_send_shortcut NOT NULL DEFAULT 'enter';
 * [企业微信登录配置说明](https://www.hivechat.net/docs/auth/wecom)
 * [钉钉登录配置说明](https://www.hivechat.net/docs/auth/dingding)
 * [飞书登录配置说明](https://www.hivechat.net/docs/auth/feishu)
+* [GitHub 登录配置说明](https://www.hivechat.net/docs/auth/github)
 
 ### 交流群
 

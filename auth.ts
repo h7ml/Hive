@@ -8,6 +8,7 @@ import { users } from '@/app/db/schema';
 import Feishu from "@/app/auth/providers/feishu";
 import Wecom from "@/app/auth/providers/wecom";
 import Dingding from "@/app/auth/providers/dingding";
+import GitHub from "@/app/auth/providers/github";
 import { eq } from 'drizzle-orm';
 
 let authProviders: any[] = [];
@@ -31,6 +32,13 @@ if (process.env.DINGDING_AUTH_STATUS === 'ON') {
     clientSecret: process.env.DINGDING_CLIENT_SECRET!,
   });
   authProviders.push(dingdingAuth);
+}
+if (process.env.GITHUB_AUTH_STATUS === 'ON') {
+  const githubAuth = GitHub({
+    clientId: process.env.GITHUB_CLIENT_ID!,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+  });
+  authProviders.push(githubAuth);
 }
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -119,6 +127,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.isAdmin = dbUser.isAdmin || false;
         }
         token.provider = 'dingding';
+      }
+      if (account?.provider === "github" && token.sub) {
+        const dbUser = await db.query.users.findFirst({
+          where: eq(users.githubUserId, account.providerAccountId)
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.isAdmin = dbUser.isAdmin || false;
+        }
+        token.provider = 'github';
       }
       return token;
     },

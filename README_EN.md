@@ -9,6 +9,10 @@
 
 One-time configuration by the administrator, easy for the entire team to use various AI models.
 
+* Supports email login and third-party authentication (WeChat Work, DingTalk, Feishu, GitHub)
+* Group-based user management
+    * Configure different available models for user groups
+    * Set monthly token limits for different user groups
 * LaTeX and Markdown rendering
 * DeepSeek thought chain visualization
 * Vision Recognition
@@ -101,6 +105,18 @@ ADMIN_CODE=22113344
 
 # Set the production environment to the official domain. No changes are required for testing purposes.
 NEXTAUTH_URL=http://127.0.0.1:3000
+
+# Optional: Third-party authentication settings (all are disabled by default)
+# Enable email login (default enabled if not set to OFF)
+EMAIL_AUTH_STATUS=ON
+
+# Enable GitHub OAuth login
+GITHUB_AUTH_STATUS=OFF
+GITHUB_CLIENT_ID="your_github_client_id"
+GITHUB_CLIENT_SECRET="your_github_client_secret"
+
+# Enable other OAuth providers (WeChat Work, DingTalk, Feishu)
+# See the Chinese README for detailed configuration instructions
 ```
 
 4. Initialize the Database
@@ -134,6 +150,13 @@ cp .env.example .env
 ```
 Modify `AUTH_SECRET` and `ADMIN_CODE` as needed. Be sure to reset these for production environments; no changes are needed for testing.
 
+For GitHub OAuth configuration, add the following to your `.env` file:
+```env
+GITHUB_AUTH_STATUS=ON
+GITHUB_CLIENT_ID="your_github_client_id"
+GITHUB_CLIENT_SECRET="your_github_client_secret"
+```
+
 3. Build the Docker image
 ```
 docker compose build
@@ -166,6 +189,11 @@ AUTH_SECRET=hclqD3nBpMphLevxGWsUnGU6BaEa2TjrCQ77weOVpPg=
 
 # Admin authorization code. This value is used to set up the admin account. Replace this example with your generated value.
 ADMIN_CODE=22113344
+
+# Optional: GitHub OAuth configuration
+GITHUB_AUTH_STATUS=OFF
+GITHUB_CLIENT_ID="your_github_client_id"
+GITHUB_CLIENT_SECRET="your_github_client_secret"
 ```
 #### Appendix: Vercel (Neon) PostgreSQL Configuration
 
@@ -179,3 +207,20 @@ ADMIN_CODE=22113344
 4. Initialize the Admin Account
 
 Once the installation and deployment are complete using the above method, visit `http://localhost:3000/setup` (use the actual domain and port) to access the admin account setup page. Once set up, you can use the system normally.
+
+#### GitHub OAuth Configuration
+
+To enable GitHub login:
+
+1. Go to GitHub Settings > Developer settings > OAuth Apps
+2. Create a new OAuth App with:
+   - Authorization callback URL: `{your_domain}/api/auth/callback/github`
+3. Copy the Client ID and Client Secret to your environment variables:
+   ```env
+   GITHUB_AUTH_STATUS=ON
+   GITHUB_CLIENT_ID="your_client_id"
+   GITHUB_CLIENT_SECRET="your_client_secret"
+   ```
+4. Restart your application
+
+For other third-party authentication providers (WeChat Work, DingTalk, Feishu), please refer to the Chinese documentation for detailed configuration instructions.

@@ -10,6 +10,7 @@ import Hivechat from "@/app/images/hivechat.svg";
 import FeishuLogin from "@/app/components/FeishuLoginButton"
 import WecomLogin from "@/app/components/WecomLoginButton"
 import DingdingLogin from "@/app/components/DingdingLoginButton"
+import GitHubLogin from "@/app/components/GitHubLoginButton"
 import { fetchAppSettings } from '@/app/admin/system/actions';
 import { getActiveAuthProvides } from '@/app/(auth)/actions';
 import SpinLoading from '@/app/components/loading/SpinLoading';
@@ -136,6 +137,10 @@ export default function LoginPage() {
         {
           authProviders.includes('dingding') &&
           <div className='my-2'><DingdingLogin /></div>
+        }
+        {
+          authProviders.includes('github') &&
+          <div className='my-2'><GitHubLogin /></div>
         }
       </div>
     </div>
