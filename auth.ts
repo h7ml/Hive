@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import { ZodError } from "zod";
 import Credentials from "next-auth/providers/credentials";
-import GitHub from "next-auth/providers/github";
 import { signInSchema } from "@/app/lib/zod";
 import { verifyPassword } from "@/app/utils/password";
 import { db } from '@/app/db';
@@ -12,17 +11,17 @@ import Dingding from "@/app/auth/providers/dingding";
 import { loadDynamicOAuthProviders } from "@/app/auth/providers/dynamic-oauth";
 import { eq } from 'drizzle-orm';
 
-// 加载OAuth提供商的缓存
-let oauthProvidersCache: any[] | null = null;
-let lastCacheTime = 0;
-const CACHE_DURATION = 60000; // 1分钟缓存
+// 全局providers缓存
+let providersCache: any[] | null = null;
+let cacheTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5分钟缓存
 
 async function getOAuthProviders() {
   const now = Date.now();
   
-  // 如果缓存未过期，直接返回缓存的providers
-  if (oauthProvidersCache && (now - lastCacheTime) < CACHE_DURATION) {
-    return oauthProvidersCache;
+  // 检查缓存是否有效
+  if (providersCache && (now - cacheTime) < CACHE_DURATION) {
+    return providersCache;
   }
   
   let providers: any[] = [];
@@ -57,49 +56,62 @@ async function getOAuthProviders() {
   }
 
   // 更新缓存
-  oauthProvidersCache = providers;
-  lastCacheTime = now;
+  providersCache = providers;
+  cacheTime = now;
   
   return providers;
 }
 
+// 预加载providers
+let providersPromise: Promise<any[]> | null = null;
+
+function getProvidersSync() {
+  if (!providersPromise) {
+    providersPromise = getOAuthProviders();
+  }
+  return providersPromise;
+}
+
+// 立即开始异步加载
+getProvidersSync();
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    ...(oauthProvidersCache || []),
+    // 先提供基础的凭据提供商
     Credentials({
-        credentials: {
-          email: {},
-          password: {},
-        },
-        authorize: async (credentials) => {
-          try {
-            const { email, password } = await signInSchema.parseAsync(credentials);
-            const user = await db.query.users
-              .findFirst({
-                where: eq(users.email, email)
-              })
-            if (!user || !user.password) {
-              return null;
-            }
-            const passwordMatch = await verifyPassword(password, user.password);
-            if (passwordMatch) {
-              return {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                isAdmin: user.isAdmin || false,
-              };
-            } else {
-              return null;
-            }
-          } catch (error) {
-            if (error instanceof ZodError) {
-              return null;
-            }
-            throw error;
+      credentials: {
+        email: {},
+        password: {},
+      },
+      authorize: async (credentials) => {
+        try {
+          const { email, password } = await signInSchema.parseAsync(credentials);
+          const user = await db.query.users
+            .findFirst({
+              where: eq(users.email, email)
+            })
+          if (!user || !user.password) {
+            return null;
           }
-        },
-      }),
+          const passwordMatch = await verifyPassword(password, user.password);
+          if (passwordMatch) {
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              isAdmin: user.isAdmin || false,
+            };
+          } else {
+            return null;
+          }
+        } catch (error) {
+          if (error instanceof ZodError) {
+            return null;
+          }
+          throw error;
+        }
+      },
+    }),
   ],
   pages: {
     error: '/auth/error',
@@ -177,7 +189,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 // 清除OAuth providers缓存的函数，供管理API调用
 export function clearOAuthProvidersCache() {
-  oauthProvidersCache = null;
-  lastCacheTime = 0;
+  providersCache = null;
+  cacheTime = 0;
+  providersPromise = null;
   console.log('OAuth providers cache cleared');
 }
