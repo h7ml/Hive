@@ -85,12 +85,17 @@ export default function RootLayout({
         </div>
         <div className={clsx('hover:bg-gray-200 rounded-lg p-2 mt-1', { 'bg-gray-200': pathname.startsWith('/admin/bot') })}>
           <Link className='w-full flex' href={"/admin/bot/list"}>
-            <Sparkle style={{ 'marginLeft': '2px' }} width={18} height={18} alt='spark'/><span className='ml-2 text-sm'>智能体管理</span>
+            <Sparkle style={{ 'marginLeft': '2px' }} width={18} height={18} alt='spark'/><span className='ml-2 text-sm'>{t('botManagement')}</span>
           </Link>
         </div>
         <div className={clsx('hover:bg-gray-200 rounded-lg p-2 mt-1', { 'bg-gray-200': pathname.startsWith('/admin/mcp') })}>
           <Link className='w-full flex items-center' href={"/admin/mcp"}>
             <Mcp style={{ 'marginLeft': '3px' }} /><span className='ml-2 text-sm'>{t('mcpServers')}</span>
+          </Link>
+        </div>
+        <div className={clsx('hover:bg-gray-200 rounded-lg p-2 mt-1', { 'bg-gray-200': pathname.startsWith('/admin/oauth') })}>
+          <Link className='w-full flex' href={"/admin/oauth"}>
+            <SettingOutlined style={{ 'marginLeft': '3px' }} /><span className='ml-2 text-sm'>{t('oauthProviders')}</span>
           </Link>
         </div>
         <div className={clsx('hover:bg-gray-200 rounded-lg p-2 mt-1', { 'bg-gray-200': pathname.startsWith('/admin/system') })}>

@@ -32,7 +32,7 @@ export const users = pgTable("user", {
   feishuUserId: text("feishuUserId"),
   feishuOpenId: text("feishuOpenId"),
   feishuUnionId: text("feishuUnionId"),
-  githubUserId: text("githubUserId"),
+  oauthAccounts: json("oauth_accounts").$type<Record<string, string>>(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   isAdmin: boolean("isAdmin").default(false),
   image: text("image"),
@@ -338,5 +338,51 @@ export const groupModels = pgTable("group_models", {
     }
   ]
 )
+
+export const oauthProviders = pgTable("oauth_providers", {
+  id: varchar("id", { length: 50 }).primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  enabled: boolean("enabled").default(false).notNull(),
+  clientId: varchar("client_id", { length: 500 }).unique(), // 添加唯一约束
+  clientSecret: varchar("client_secret", { length: 500 }),
+  
+  // OAuth URLs - 完全可配置
+  authorizationUrl: varchar("authorization_url", { length: 1000 }).notNull(),
+  tokenUrl: varchar("token_url", { length: 1000 }).notNull(),
+  userinfoUrl: varchar("userinfo_url", { length: 1000 }),
+  
+  // 权限范围
+  scopes: text("scopes"),
+  
+  // 用户信息映射配置 - JSON格式存储字段映射
+  profileMapping: json("profile_mapping").$type<{
+    id: string;
+    name?: string;
+    email?: string;
+    image?: string;
+    [key: string]: any;
+  }>().notNull(),
+  
+  // UI配置
+  iconUrl: varchar("icon_url", { length: 500 }),
+  buttonText: varchar("button_text", { length: 100 }),
+  buttonColor: varchar("button_color", { length: 50 }),
+  orderIndex: integer("order_index").default(0).notNull(),
+  
+  // 高级配置
+  config: json("config").$type<{
+    checks?: string[]; // ["state", "pkce", "nonce"]
+    responseType?: string; // "code" | "token"
+    responseMode?: string; // "query" | "fragment" | "form_post"
+    additionalParams?: Record<string, string>;
+    headers?: Record<string, string>;
+    [key: string]: any;
+  }>(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+export type OAuthProviderType = typeof oauthProviders.$inferSelect;
 
 
