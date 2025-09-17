@@ -23,9 +23,9 @@ export interface OAuthProvider {
 export interface OAuthProviderDisplay {
   id: string;
   name: string;
-  iconUrl?: string;
-  buttonText?: string;
-  buttonColor?: string;
+  iconUrl: string | null;
+  buttonText: string | null;
+  buttonColor: string | null;
   orderIndex: number;
 }
 
