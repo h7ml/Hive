@@ -32,6 +32,7 @@ export const users = pgTable("user", {
   feishuUserId: text("feishuUserId"),
   feishuOpenId: text("feishuOpenId"),
   feishuUnionId: text("feishuUnionId"),
+  githubUserId: text("githubUserId"),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   isAdmin: boolean("isAdmin").default(false),
   image: text("image"),

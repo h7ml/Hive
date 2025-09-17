@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { ZodError } from "zod";
 import Credentials from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
 import { signInSchema } from "@/app/lib/zod";
 import { verifyPassword } from "@/app/utils/password";
 import { db } from '@/app/db';
@@ -31,6 +32,13 @@ if (process.env.DINGDING_AUTH_STATUS === 'ON') {
     clientSecret: process.env.DINGDING_CLIENT_SECRET!,
   });
   authProviders.push(dingdingAuth);
+}
+if (process.env.GITHUB_AUTH_STATUS === 'ON') {
+  const githubAuth = GitHub({
+    clientId: process.env.GITHUB_CLIENT_ID!,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+  });
+  authProviders.push(githubAuth);
 }
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -119,6 +127,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.isAdmin = dbUser.isAdmin || false;
         }
         token.provider = 'dingding';
+      }
+      if (account?.provider === "github" && token.sub) {
+        const dbUser = await db.query.users.findFirst({
+          where: eq(users.githubUserId, account.providerAccountId)
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.isAdmin = dbUser.isAdmin || false;
+        }
+        token.provider = 'github';
       }
       return token;
     },
