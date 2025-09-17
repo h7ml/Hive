@@ -12,9 +12,11 @@ import WecomLogin from "@/app/components/WecomLoginButton"
 import DingdingLogin from "@/app/components/DingdingLoginButton"
 import GitHubLogin from "@/app/components/GitHubLoginButton"
 import { fetchAppSettings } from '@/app/admin/system/actions';
-import { getActiveAuthProvides } from '@/app/(auth)/actions';
+import { getActiveAuthProvides, getEnabledOAuthProviders } from '@/app/(auth)/actions';
 import SpinLoading from '@/app/components/loading/SpinLoading';
+import DynamicOAuthButton from '@/app/components/DynamicOAuthButton';
 import { useTranslations } from 'next-intl';
+import { OAuthProviderDisplay } from '@/types/oauth';
 
 interface LoginFormValues {
   email: string;
@@ -29,6 +31,7 @@ export default function LoginPage() {
   const [isFetching, setIsFetching] = useState(true);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [authProviders, setAuthProviders] = useState<string[]>([]);
+  const [oauthProviders, setOauthProviders] = useState<OAuthProviderDisplay[]>([]);
   const [error, setError] = useState("");
 
   async function handleSubmit(values: LoginFormValues) {
@@ -51,8 +54,15 @@ export default function LoginPage() {
     const fetchSettings = async () => {
       const resultValue = await fetchAppSettings('isRegistrationOpen');
       setIsRegistrationOpen(resultValue === 'true');
+      
       const activeAuthProvides = await getActiveAuthProvides();
-      setAuthProviders(activeAuthProvides)
+      setAuthProviders(activeAuthProvides);
+      
+      // 获取动态OAuth提供商
+      const enabledOAuthProviders = await getEnabledOAuthProviders();
+      setOauthProviders(enabledOAuthProviders.sort((a, b) => 
+        (b.orderIndex || 0) - (a.orderIndex || 0)
+      ));
     }
     fetchSettings().then(() => {
       setIsFetching(false);
@@ -138,10 +148,25 @@ export default function LoginPage() {
           authProviders.includes('dingding') &&
           <div className='my-2'><DingdingLogin /></div>
         }
-        {
-          authProviders.includes('github') &&
-          <div className='my-2'><GitHubLogin callbackUrl="/chat" /></div>
-        }
+        
+        {/* 动态OAuth提供商 */}
+        {oauthProviders.length > 0 && (
+          <div className="mt-4">
+            {(authProviders.includes('email') || authProviders.includes('wecom') || 
+              authProviders.includes('feishu') || authProviders.includes('dingding')) && (
+              <div className="flex items-center my-4">
+                <div className="flex-grow border-t border-gray-300"></div>
+                <span className="mx-4 text-gray-500 text-sm">{t('or')}</span>
+                <div className="flex-grow border-t border-gray-300"></div>
+              </div>
+            )}
+            {oauthProviders.map((provider) => (
+              <div key={provider.id} className="my-2">
+                <DynamicOAuthButton provider={provider} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
