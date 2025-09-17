@@ -1,6 +1,3 @@
-import { db } from '@/app/db';
-import { eq } from 'drizzle-orm';
-import { users, groups } from '@/app/db/schema';
 import { OAuthConfig } from "next-auth/providers";
 
 export interface GitHubProfile {
@@ -69,38 +66,10 @@ export default function GitHub(options: {
           }
         }
         
-        // 检查是否已存在该用户
-        const existingUser = await db
-          .query
-          .users
-          .findFirst({
-            where: eq(users.githubUserId, userData.id.toString())
-          });
-          
-        if (existingUser) {
-          // 更新现有用户信息
-          await db.update(users).set({
-            name: userData.name || userData.login,
-            email: email || `${userData.login}@github.com`,
-            image: userData.avatar_url,
-          }).where(eq(users.githubUserId, userData.id.toString()));
-        } else {
-          // 创建新用户
-          const defaultGroup = await db.query.groups.findFirst({
-            where: eq(groups.isDefault, true)
-          });
-          const groupId = defaultGroup?.id || null;
-          
-          await db.insert(users).values({
-            githubUserId: userData.id.toString(),
-            name: userData.name || userData.login,
-            email: email || `${userData.login}@github.com`,
-            image: userData.avatar_url,
-            groupId: groupId,
-          });
-        }
-        
-        return userData;
+        return {
+          ...userData,
+          email: email || `${userData.login}@github.com`
+        };
       },
     },
     profile(profile: GitHubProfile) {
