@@ -4,19 +4,19 @@ export interface OAuthProvider {
   name: string;
   authorizationUrl: string;
   tokenUrl: string;
-  userinfoUrl?: string;
-  scopes: string;
+  userinfoUrl: string | null;
+  scopes: string | null;
   profileMapping: Record<string, string>;
-  clientId: string;
-  clientSecret: string;
-  iconUrl?: string;
-  buttonText?: string;
-  buttonColor?: string;
+  clientId: string | null;
+  clientSecret: string | null;
+  iconUrl: string | null;
+  buttonText: string | null;
+  buttonColor: string | null;
   orderIndex: number;
-  config?: Record<string, any>;
+  config: Record<string, any> | null;
   enabled: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 // OAuth提供商简化类型定义（前端显示使用）

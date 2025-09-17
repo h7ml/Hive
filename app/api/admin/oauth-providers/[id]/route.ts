@@ -86,7 +86,7 @@ export async function PUT(
     if (scopes !== undefined) updateData.scopes = scopes;
     if (profileMapping !== undefined) updateData.profileMapping = profileMapping;
     if (clientId !== undefined) updateData.clientId = clientId;
-    if (clientSecret !== undefined && clientSecret !== '***' + existingProvider.clientSecret.slice(-4)) {
+    if (clientSecret !== undefined && clientSecret !== '***' + (existingProvider.clientSecret?.slice(-4) || '')) {
       updateData.clientSecret = clientSecret;
     }
     if (iconUrl !== undefined) updateData.iconUrl = iconUrl;

@@ -235,9 +235,9 @@ export default function OAuthProvidersPage() {
                       <p><strong>{t('buttonColorLabel')}:</strong> 
                         <span 
                           className="inline-block w-4 h-4 ml-2 rounded" 
-                          style={{ backgroundColor: record.buttonColor }}
+                          style={{ backgroundColor: record.buttonColor || '#666666' }}
                         ></span>
-                        {record.buttonColor}
+                        {record.buttonColor || '#666666'}
                       </p>
                     </div>
                   ),
@@ -442,7 +442,7 @@ export default function OAuthProvidersPage() {
               label={t('orderIndex')}
               name="orderIndex"
             >
-              <InputNumber min={0} placeholder={0} />
+              <InputNumber min={0} placeholder="0" />
             </Form.Item>
           </div>
 

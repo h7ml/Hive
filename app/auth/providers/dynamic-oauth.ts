@@ -17,7 +17,7 @@ export function createDynamicOAuthProvider(
     id: providerConfig.id,
     name: providerConfig.name,
     type: "oauth",
-    checks: providerConfig.config?.checks || ["state"],
+    checks: (providerConfig.config?.checks as ("none" | "state" | "pkce")[]) || ["state"],
     authorization: {
       url: providerConfig.authorizationUrl,
       params: {

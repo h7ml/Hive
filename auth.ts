@@ -63,12 +63,9 @@ async function getOAuthProviders() {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: async () => {
-    const dynamicProviders = await getOAuthProviders();
-    
-    return [
-      ...dynamicProviders,
-      Credentials({
+  providers: [
+    ...(oauthProvidersCache || []),
+    Credentials({
         credentials: {
           email: {},
           password: {},
@@ -102,8 +99,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         },
       }),
-    ];
-  },
+  ],
   pages: {
     error: '/auth/error',
   },
